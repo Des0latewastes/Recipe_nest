@@ -80,6 +80,9 @@ function filteredRecipes() {
 function render() {
   const all = state.recipes;
   $('recipeCount').textContent = String(all.length);
+  // First-use invitation becomes an ordinary Add button once the cookbook has recipes.
+  const heroLabel = $('heroAddBtn').lastChild;
+  heroLabel.textContent = all.length ? ' Add another recipe' : ' Save your first recipe';
   const grid = $('recipeGrid');
   grid.replaceChildren();
   const found = filteredRecipes();
