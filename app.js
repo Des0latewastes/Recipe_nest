@@ -5,6 +5,33 @@ const $ = id => document.getElementById(id);
 const state = { recipes: [], filter: 'all', query: '', editing: null, viewing: null, deferredInstall: null };
 const escFileName = s => (s || 'recipe').replace(/[^a-z0-9._ -]/gi, '_').slice(0, 70);
 const now = () => new Date().toISOString();
+// randomUUID is not available in every mobile browser/webview; keep a
+// collision-resistant local fallback rather than silently failing to save.
+function newRecipeId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return 'recipe-' + [...bytes].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+  return 'recipe-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+}
+function setSaveError(message = '') {
+  const error = $('editorSaveError');
+  error.textContent = message;
+  error.classList.toggle('hidden', !message);
+}
+function showAllRecipes() {
+  state.filter = 'all';
+  state.query = '';
+  $('searchInput').value = '';
+  document.querySelectorAll('[data-filter]').forEach(chip => {
+    const selected = chip.dataset.filter === 'all';
+    chip.classList.toggle('active', selected);
+    chip.setAttribute('aria-pressed', String(selected));
+  });
+}
 const parseOrThrow = markdown => { const parsed = parseRecipe(markdown); if (!parsed.valid) throw new Error(parsed.error); return parsed; };
 let toastTimeout;
 
@@ -101,6 +128,7 @@ function preview() {
 }
 function openEditor(id = null, preset = '') {
   state.editing = id;
+  setSaveError();
   const record = state.recipes.find(r => r.id === id);
   $('editorTitle').textContent = record ? 'Edit your recipe' : 'Add a recipe';
   $('saveRecipeBtn').textContent = record ? 'Save new version' : 'Save recipe';
@@ -111,25 +139,49 @@ function openEditor(id = null, preset = '') {
 }
 async function saveEditor(event) {
   event.preventDefault();
+  const saveButton = $('saveRecipeBtn');
+  // Never dismiss an editor until the recipe is confirmed to be on-device.
+  if (saveButton.disabled) return;
+  saveButton.disabled = true;
+  setSaveError();
   try {
     const parsed = parseOrThrow($('markdownInput').value);
     const previous = state.editing ? await getRecipe(state.editing) : null;
-    if (previous && parsed.markdown === previous.markdown) { closeDialog('editorDialog'); toast('No changes to save.'); return; }
-    const previousVersions = previous ? [...(previous.versions || []), { markdown: previous.markdown, savedAt: previous.updatedAt || previous.createdAt }] : [];
-    const record = {
-      ...parsed,
-      id: previous ? previous.id : crypto.randomUUID(),
-      createdAt: previous ? previous.createdAt : now(),
-      updatedAt: now(),
-      favorite: previous ? !!previous.favorite : false,
-      versions: previousVersions.slice(-100),
-    };
-    await putRecipe(record);
-    closeDialog('editorDialog');
+    const unchanged = previous && parsed.markdown === previous.markdown;
+    if (!unchanged) {
+      const previousVersions = previous
+        ? [...(previous.versions || []), { markdown: previous.markdown, savedAt: previous.updatedAt || previous.createdAt }]
+        : [];
+      const record = {
+        ...parsed,
+        id: previous ? previous.id : newRecipeId(),
+        createdAt: previous ? previous.createdAt : now(),
+        updatedAt: now(),
+        favorite: previous ? !!previous.favorite : false,
+        versions: previousVersions.slice(-100),
+      };
+      await putRecipe(record);
+      const verified = await getRecipe(record.id);
+      if (!verified || verified.markdown !== record.markdown) {
+        throw new Error('Your recipe could not be verified in local storage. Please try again.');
+      }
+    }
+    showAllRecipes(); // Especially important when the previous filter hides the new recipe.
     await refresh();
-    toast(previous ? 'New recipe version saved!' : 'Recipe saved to your cookbook!');
-    if (previous) openDetail(record.id);
-  } catch (e) { toast(e.message); }
+    closeDialog('editorDialog');
+    state.editing = null;
+    toast(unchanged ? 'No changes to save. Back to your cookbook.' :
+      previous ? 'New version saved to your cookbook!' : 'Recipe saved to your cookbook!');
+    // Keep the visible destination the recipe book, not another popup.
+    $('recipeGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    const message = error?.message || 'Could not save this recipe. Please try again.';
+    setSaveError(message);
+    // Preserve the draft text and keep the dialog open.
+    $('editorSaveError').scrollIntoView({ block: 'nearest' });
+  } finally {
+    saveButton.disabled = false;
+  }
 }
 function buildSection(parent, heading, items, numbered = false) {
   if (!items.length) return;
@@ -213,8 +265,9 @@ function wire() {
   for (const id of ['toolsBtn']) $(id).addEventListener('click', () => showDialog('toolsDialog'));
   for (const id of ['backupBtn', 'downloadBackup']) $(id).addEventListener('click', () => backup().catch(e => toast(e.message)));
   document.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', () => closeDialog(el.dataset.close)));
-  $('markdownInput').addEventListener('input', preview);
+  $('markdownInput').addEventListener('input', () => { setSaveError(); preview(); });
   $('editorForm').addEventListener('submit', saveEditor);
+  $('saveRecipeBtn').addEventListener('click', saveEditor);
   $('markdownFile').addEventListener('change', async e => {
     const file = e.target.files[0]; if (!file) return;
     try { if (file.size > 200000) throw new Error('Recipe files must be smaller than 200 KB.'); $('markdownInput').value = await file.text(); preview(); }
