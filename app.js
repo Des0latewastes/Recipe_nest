@@ -80,9 +80,8 @@ function filteredRecipes() {
 function render() {
   const all = state.recipes;
   $('recipeCount').textContent = String(all.length);
-  // First-use invitation becomes an ordinary Add button once the cookbook has recipes.
-  const heroLabel = $('heroAddBtn').lastChild;
-  heroLabel.textContent = all.length ? ' Add another recipe' : ' Save your first recipe';
+  // Use a dedicated label so mobile DOM/whitespace differences cannot break this update.
+  $('heroAddLabel').textContent = all.length ? 'Add another recipe' : 'Save your first recipe';
   const grid = $('recipeGrid');
   grid.replaceChildren();
   const found = filteredRecipes();
@@ -300,5 +299,10 @@ function wire() {
 wire();
 refresh().catch(e => toast('Recipe storage is unavailable: ' + e.message));
 if ('serviceWorker' in navigator && window.isSecureContext) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+  window.addEventListener('load', () => {
+    // Check for new application shells without touching the locally stored recipes.
+    navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
+      .then(registration => registration.update().catch(() => {}))
+      .catch(() => {});
+  });
 }
