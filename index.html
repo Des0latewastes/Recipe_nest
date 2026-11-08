@@ -83,7 +83,8 @@
       <label for="markdownInput" class="field-label">Your recipe</label>
       <textarea id="markdownInput" placeholder="# My delicious recipe\n\nServings: 4\nPrep: 15 minutes\nCook: 30 minutes\nCategory: Dinner\n\n## Ingredients\n- 2 tablespoons olive oil\n- 1 onion, chopped\n\n## Method\n1. Heat the oil.\n2. Cook the onion until soft.\n\n## Notes\nTry more garlic next time!" rows="13" spellcheck="true"></textarea>
       <div class="parse-preview" id="parsePreview"><span aria-hidden="true">✧</span> Your recipe preview will appear here.</div>
-      <div class="dialog-actions"><button class="button outline" data-close="editorDialog" type="button">Cancel</button><button id="saveRecipeBtn" type="submit" value="save" class="button primary">Save recipe</button></div>
+      <p id="editorSaveError" class="editor-save-error hidden" role="alert" aria-live="assertive"></p>
+      <div class="dialog-actions"><button class="button outline" data-close="editorDialog" type="button">Cancel</button><button id="saveRecipeBtn" type="button" class="button primary">Save recipe</button></div>
     </form>
   </dialog>
 

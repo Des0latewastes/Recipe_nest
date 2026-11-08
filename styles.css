@@ -94,6 +94,9 @@ h2 { font-family: Georgia,serif; font-size: 32px; font-weight: 400; letter-spaci
 textarea { padding: 16px; border: 1px solid #e3e5dc; width: 100%; resize: vertical; min-height: 230px; background: #fff; border-radius: 13px; line-height: 1.62; font-size: 13px; color: #2d4236; }
 .parse-preview { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 12px; background: #f5f0e7; color: #847b6e; border-radius: 10px; padding: 13px; font-size: 12px; }
 .parse-preview.ready { background: #eaf3e7; color: #3a7657; }.parse-preview span { font-size: 12px; }
+.editor-save-error { color: #902a24; background: #ffede8; border: 1px solid #e9b0a7; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.55; margin-top: 14px; }
+.editor-save-error.hidden { display: none; }
+#saveRecipeBtn:disabled { opacity: .65; cursor: wait; }
 .dialog-actions { justify-content: flex-end; margin-top: 20px; }
 .detail-content { padding-bottom: 28px; }
 .detail-title { font-size: clamp(30px,6vw,42px); line-height: 1.14; margin: 14px 0 20px; }

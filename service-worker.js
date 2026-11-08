@@ -1,5 +1,5 @@
 /* Offline app shell: deliberately never caches recipe data or third-party APIs. */
-const CACHE_NAME = 'recipe-nest-shell-v1';
+const CACHE_NAME = 'recipe-nest-shell-v2';
 const APP_FILES = ['./', './index.html', './styles.css', './app.js', './recipe-parser.js', './recipe-store.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)).then(() => self.skipWaiting()));
