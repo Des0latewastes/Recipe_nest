@@ -1,6 +1,6 @@
 /* Offline app shell: deliberately never caches recipe data or third-party APIs. */
-const CACHE_NAME = 'recipe-nest-shell-v3';
-const APP_FILES = ['./', './index.html', './styles.css', './app.js', './recipe-parser.js', './recipe-store.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon.svg'];
+const CACHE_NAME = 'recipe-nest-shell-v4';
+const APP_FILES = ['./', './index.html', './styles.css', './app.js?v=4', './recipe-parser.js', './recipe-store.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)).then(() => self.skipWaiting()));
 });
@@ -10,7 +10,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  event.respondWith(fetch(request).then(response => {
+  event.respondWith(fetch(request, { cache: 'no-store' }).then(response => {
     if (response.ok && new URL(request.url).pathname.startsWith(new URL(self.registration.scope).pathname)) {
       const copy = response.clone();
       caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
