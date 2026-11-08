@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#234238">
+  <meta name="description" content="Your own recipe collection, saved privately on your device. Paste recipes in Markdown and keep every version.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Recipe Nest">
+  <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Recipe Nest | Your personal cookbook</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Recipe Nest home">
+        <span class="brand-icon" aria-hidden="true">✿</span>
+        <span><strong>recipe<span class="brand-accent">nest</span></strong><small>Your kitchen notebook</small></span>
+      </a>
+      <div class="top-actions">
+        <button id="backupBtn" class="button ghost desktop-action" type="button">⇩ <span>Back up</span></button>
+        <button id="installBtn" class="button ghost desktop-action hidden" type="button">Install app</button>
+        <button id="addBtn" class="button primary" type="button"><span aria-hidden="true">＋</span> Add a recipe</button>
+      </div>
+    </header>
+
+    <main id="homeView" class="main-view">
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="sun-dot"></span> MADE WITH LOVE, KEPT FOR LATER</div>
+          <h1 id="heroTitle">A little home for<br><em>your favourite recipes.</em></h1>
+          <p>From "I wonder if this works?" to "Everyone wants seconds." Keep your kitchen creations in one lovely place.</p>
+          <button id="heroAddBtn" class="button cream" type="button"><span aria-hidden="true">＋</span> Save your first recipe</button>
+        </div>
+        <div class="hero-illustration" aria-hidden="true">
+          <div class="halo"></div>
+          <div class="paper paper-back"></div>
+          <div class="paper paper-front">
+            <span class="paper-flower">✿</span>
+            <i></i><i></i><i></i><i></i>
+            <span class="paper-heart">♥</span>
+          </div>
+          <div class="sparkle spark-one">✦</div><div class="sparkle spark-two">✧</div>
+        </div>
+      </section>
+
+      <section class="collection" aria-labelledby="collectionTitle">
+        <div class="collection-heading">
+          <div><p class="overline">THE RECIPE BOX</p><h2 id="collectionTitle">My recipes <span id="recipeCount" class="count">0</span></h2></div>
+          <button id="toolsBtn" class="button outline" type="button">⋯ <span>Backup &amp; restore</span></button>
+        </div>
+        <div class="filters">
+          <label class="search-field"><span aria-hidden="true">⌕</span><span class="sr-only">Search recipes</span><input id="searchInput" type="search" placeholder="Search a recipe or ingredient…" autocomplete="off"></label>
+          <div class="filter-chips" role="group" aria-label="Filter recipes">
+            <button type="button" class="chip active" data-filter="all" aria-pressed="true">All recipes</button>
+            <button type="button" class="chip" data-filter="favourites" aria-pressed="false">♥ Favourites</button>
+            <button type="button" class="chip" data-filter="baking" aria-pressed="false">Baking</button>
+            <button type="button" class="chip" data-filter="dinner" aria-pressed="false">Dinner</button>
+            <button type="button" class="chip" data-filter="other" aria-pressed="false">Other</button>
+          </div>
+        </div>
+        <div id="recipeGrid" class="recipe-grid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon" aria-hidden="true">✎</div>
+          <h3 id="emptyTitle">Your next great recipe belongs here.</h3>
+          <p id="emptyDescription">Copy the finished recipe from ChatGPT, paste it here and it's yours to keep.</p>
+          <div class="empty-actions"><button id="emptyAddBtn" class="button primary" type="button">＋ Add a recipe</button><button id="sampleBtn" class="button outline" type="button">Try an example</button></div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer"><span>✿ A recipe is a memory you can make again.</span><span>Saved on this device, not in an account.</span></footer>
+  </div>
+
+  <dialog id="editorDialog" class="dialog editor-dialog" aria-labelledby="editorTitle">
+    <form method="dialog" id="editorForm" class="dialog-content">
+      <div class="dialog-heading"><div><p class="overline">FROM YOUR CHAT TO YOUR COOKBOOK</p><h2 id="editorTitle">Add a recipe</h2></div><button type="button" class="icon-button" data-close="editorDialog" aria-label="Close">✕</button></div>
+      <p class="dialog-intro">In ChatGPT, ask for your finished recipe <strong>in Markdown</strong>, then copy and paste it below. Or choose a <code>.md</code> file.</p>
+      <div class="editor-tabs"><span class="tab-active">✍ Paste Markdown</span><label class="button outline small import-file-label">↑ Choose .md file<input id="markdownFile" type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden></label></div>
+      <label for="markdownInput" class="field-label">Your recipe</label>
+      <textarea id="markdownInput" placeholder="# My delicious recipe\n\nServings: 4\nPrep: 15 minutes\nCook: 30 minutes\nCategory: Dinner\n\n## Ingredients\n- 2 tablespoons olive oil\n- 1 onion, chopped\n\n## Method\n1. Heat the oil.\n2. Cook the onion until soft.\n\n## Notes\nTry more garlic next time!" rows="13" spellcheck="true"></textarea>
+      <div class="parse-preview" id="parsePreview"><span aria-hidden="true">✧</span> Your recipe preview will appear here.</div>
+      <div class="dialog-actions"><button class="button outline" data-close="editorDialog" type="button">Cancel</button><button id="saveRecipeBtn" type="submit" value="save" class="button primary">Save recipe</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="recipeDialog" class="dialog recipe-dialog" aria-labelledby="detailTitle">
+    <div class="dialog-content detail-content">
+      <div class="dialog-heading detail-heading"><span class="overline" id="detailCategory">YOUR RECIPE</span><button type="button" class="icon-button" data-close="recipeDialog" aria-label="Close">✕</button></div>
+      <div id="recipeDetail"></div>
+    </div>
+  </dialog>
+
+  <dialog id="toolsDialog" class="dialog tools-dialog" aria-labelledby="toolsTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading"><div><p class="overline">KEEP YOUR RECIPES SAFE</p><h2 id="toolsTitle">Backup &amp; restore</h2></div><button type="button" class="icon-button" data-close="toolsDialog" aria-label="Close">✕</button></div>
+      <p class="dialog-intro">Recipes are saved on this device. Make a backup file occasionally, especially before changing phones or clearing browser data.</p>
+      <div class="tool-option"><span class="tool-symbol" aria-hidden="true">↓</span><div><strong>Download my cookbook</strong><p>Save every recipe and its versions as one JSON backup file.</p></div><button id="downloadBackup" class="button primary small" type="button">Download</button></div>
+      <div class="tool-option"><span class="tool-symbol" aria-hidden="true">↑</span><div><strong>Restore from a backup</strong><p>Choose your Recipe Nest backup to add its recipes to this device.</p></div><label class="button outline small import-file-label">Choose file<input id="restoreFile" type="file" accept=".json,application/json" hidden></label></div>
+      <p class="tool-note">No account, subscription or server needed. Backups remain your responsibility.</p>
+    </div>
+  </dialog>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
